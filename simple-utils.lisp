@@ -50,12 +50,14 @@
 ;;;   TODO: Find a implementation for other lisp implementations or convert (ASSERT NIL ...)
 ;;;         with restarts to an ignorable warning.
 
-(defun inject-package-local-nickname (nickname for-package to-package) 
-  #+sbcl
-  (let ((to-p (find-package to-package)))
-    (assert (packagep to-p))
-    (let ((*PACKAGE* to-p))
-      (sb-ext:add-package-local-nickname nickname for-package)))
+(defun inject-package-local-nickname (nickname for-package to-package)  
+  "
+  Inject package local nickname NICKNAME for package FOR-PACKAGE into TO-PACKAGE.
+"
+  #+sbcl (let ((to-p (find-package to-package)))
+	   (assert (packagep to-p))
+	   (let ((*PACKAGE* to-p))
+	     (sb-ext:add-package-local-nickname nickname for-package)))
+ 
   #-(or sbcl)
-  (assert nil nil "No implementation for INJECT-PACKAGE-LOCAL-NICKNAME available." )
-  )
+  (assert nil nil "No implementation for INJECT-PACKAGE-LOCAL-NICKNAME available." ))
