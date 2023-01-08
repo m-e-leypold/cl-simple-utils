@@ -18,11 +18,16 @@
 #   For altermative licensing options, see README.md
 #
 
-all::
+all:: check-warnings
 
 clean::
-	rm -f *~
+	rm -f *~ *.log *.fasl	
 
+CHECK-PREP = true
+LOAD       = sbcl --noinform --disable-debugger \
+                  --eval '(asdf:load-system "de.m-e-leypold.cl-simple-utils")' --quit
+
+check::    # There are no checks here
 
 # The procedures below are for the original author of this package.
 
@@ -38,4 +43,19 @@ publish:                            # We only release from main
 	git push GITLAB main
 	git push GITHUB main
 	git push origin main
+
+
+clean-fasl-cache:
+	rm -rf $(HOME)/.cache/common-lisp
+
+check-warnings:
+	$(CHECK-PREP) >CHECK-PREP.log 2>&1
+	$(LOAD) >CHECK.log 2>&1
+	! grep -C8 -i "warn" CHECK.log  # This could be smarter
+	@echo
+	@echo "No warnings detected."
+
+stricter-check: clean-fasl-cache check-warnings
+
+check-all: check stricter-check
 
