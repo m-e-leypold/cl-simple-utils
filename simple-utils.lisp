@@ -28,7 +28,9 @@
 ;;; * -- Package definition ---------------------------------------------------------------------------------|
 
 (defpackage :de.m-e-leypold.cl-simple-utils
-  (:documentation "Simple utilities for DE.M-E-LEYPOLD.*")
+  (:documentation
+   "
+   Simple utilities for DE.M-E-LEYPOLD.*")
   (:use :common-lisp)
   (:export
    :inject-package-local-nickname

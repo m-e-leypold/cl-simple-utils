@@ -24,8 +24,19 @@
 (defsystem "de.m-e-leypold.cl-simple-utils"
   :author "M E Leypold [elegant-weapons ( AT) m-e-leypold (DOT) de]"
   :licence "GPL3"
-  :description "Primitive utilities required to build up infrastructure for UNCOMMON-LISP development"
+  :description "Primitive utilities required to build up infrastructure for UNCOMMON-LISP development"  
   :components ((:file "simple-utils")))
 
+(defsystem "de.m-e-leypold.cl-simple-utils/wrapped-streams"
+  :author "M E Leypold [elegant-weapons ( AT) m-e-leypold (DOT) de]"
+  :licence "GPL3"
+  :description "Simple implementations of wrapped streams, e.g. for indented output"
+  :components ((:file "wrapped-streams")))
+
+(defsystem "de.m-e-leypold.cl-simple-utils/load-all"
+  :author "M E Leypold [elegant-weapons ( AT) m-e-leypold (DOT) de]"
+  :licence "GPL3"
+  :description "Load all systems in CL-SIMPLE-UTILS"
+  :depends-on ("de.m-e-leypold.cl-simple-utils" "de.m-e-leypold.cl-simple-utils/wrapped-streams"))
 
 
