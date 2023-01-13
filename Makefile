@@ -35,9 +35,8 @@ $(info TEST-RUNNER    = $(SHORT-NAME))
 clean::
 	rm -f *~ *.log *.fasl	
 
-CHECK-PREP = true
-LOAD       = sbcl --noinform --disable-debugger \
-                  --eval '(asdf:load-system "$(PRIMARY-SYSTEM)/load-all")' --quit
+CHECK-PREP = sbcl --noinform --disable-debugger --eval '(asdf:load-system "$(PRIMARY-SYSTEM)/prerequisites")' --quit
+LOAD       = sbcl --noinform --disable-debugger --eval '(asdf:load-system "$(PRIMARY-SYSTEM)/load-all")' --quit
 
 ifeq ($(TEST-RUNNER),)
 check::    # There are no checks here

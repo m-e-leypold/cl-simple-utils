@@ -33,10 +33,33 @@
   :description "Simple implementations of wrapped streams, e.g. for indented output"
   :components ((:file "wrapped-streams")))
 
+(defsystem "de.m-e-leypold.cl-simple-utils/basic-test"
+  :author "M E Leypold [elegant-weapons ( AT) m-e-leypold (DOT) de]"
+  :licence "GPL3"
+  :depends-on ("de.m-e-leypold.cl-simple-utils")
+  :description "An untested test framework"
+  :components ((:file "basic-test")))
+
+
+(defsystem "de.m-e-leypold.cl-simple-utils/tests"
+  :author "M E Leypold [elegant-weapons ( AT) m-e-leypold (DOT) de]"
+  :licence "GPL3"
+  :description "Testing CL-SIMPLE-UTILS"
+  :depends-on ("de.m-e-leypold.cl-simple-utils"
+	       "de.m-e-leypold.cl-simple-utils/wrapped-streams"
+	       "de.m-e-leypold.cl-simple-utils/basic-test")
+  :components ((:file "tests")))
+
 (defsystem "de.m-e-leypold.cl-simple-utils/load-all"
   :author "M E Leypold [elegant-weapons ( AT) m-e-leypold (DOT) de]"
   :licence "GPL3"
   :description "Load all systems in CL-SIMPLE-UTILS"
   :depends-on ("de.m-e-leypold.cl-simple-utils" "de.m-e-leypold.cl-simple-utils/wrapped-streams"))
 
+(defsystem "de.m-e-leypold.cl-simple-utils/prerequisites"
+  :author "M E Leypold [elegant-weapons ( AT) m-e-leypold (DOT) de]"
+  :licence "GPL3"
+  :depends-on ()
+  :description "Just all external prerequisites"
+  :components ())
 
