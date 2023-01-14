@@ -31,10 +31,10 @@
   (:documentation "Stream wrappers: Intending stream text before output")
   (:use :common-lisp :sb-gray)
   (:export
-   :basic-indenting-character-output-stream
-   :line-prefix
-   :wrapped-stream
-   :indented-stream
+   #+sbcl :basic-indenting-character-output-stream
+   #+sbcl :line-prefix
+   #+sbcl :wrapped-stream
+   #+sbcl :indented-stream
    :maybe-indented-stream
    ))
 
@@ -42,7 +42,7 @@
 
 ;;; * -- Indenting Output Stream ----------------------------------------------------------------------------|
 
-
+#+sbcl
 (defclass basic-indenting-character-output-stream (fundamental-character-output-stream)
   ((wrapped-stream
     :reader  wrapped-stream
@@ -59,7 +59,7 @@
 ;; TODO: Prefix as a string passed.
 ;; TODO: Track whether we already started, output prefix at beginnin
 
-
+#+sbcl
 (defmethod stream-write-char ((stream basic-indenting-character-output-stream) ch)
   ;; (format t "-> ~S" ch))
   (if (not (in-line stream))
@@ -73,11 +73,17 @@
 ;; (defmethod stream-write-string ((stream basic-indenting-character-output-stream) string &optional start end)
 ;;  (write-string string  (wrapped-stream stream) :start start :end end))
 
-(defun indented-stream (stream
-			&key
-			  indent
-			  (prefix (make-sequence 'string indent :initial-element #\Space)))
-  (make-instance 'basic-indenting-character-output-stream :wraps stream :prefix prefix))
+#+sbcl
+(defun indented-stream (stream &key
+				 indent
+				 (prefix (make-sequence 'string indent :initial-element #\Space)))
+    (make-instance 'basic-indenting-character-output-stream :wraps stream :prefix prefix))
+
+(defun maybe-indented-stream (stream &key indent prefix)
+  (declare (ignorable indent prefix))
+  #+sbcl (indented-stream stream :indent indent :prefix prefix)
+  #-sbcl stream)
+
 
 ;; (defparameter w (indented-stream *standard-output* :prefix "    | "))
 ;; (format t "----~%")
