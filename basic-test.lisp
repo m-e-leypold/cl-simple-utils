@@ -33,6 +33,7 @@
   (:export
    :run-tests-local
    :deftest-local
+   :assert-local
    :explain
    :trace-expr
    ))
@@ -130,7 +131,9 @@
   (format t "~&  ~a~%" message))
 
 (defmacro trace-expr (expr)
-  `(format t "~&  ~S => ~S~%" (quote ,expr) ,expr))
+  (let ((package *package*))
+    `(let ((*package* ,package))
+       (format t "~&  ~S => ~S~%" (quote ,expr) ,expr))))
 
 ;;; * -------------------------------------------------------------------------------------------------------|
 ;;; WRT the outline-* and comment-* variables, see the comment in test.lisp

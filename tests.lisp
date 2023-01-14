@@ -45,8 +45,11 @@
 ;;; * Wrapped streams ---------------------------------------------------------------------------------------|
 
 (deftest-local indenting-a-char-stream ()
-  "
-  Checks: Indentation via `BASIC-INDENTING-CHARACTER-OUTPUT-STREAM
+    "
+    Checks: Indentation via `BASIC-INDENTING-CHARACTER-OUTPUT-STREAM'
+
+    A stream wrapped into `BASIC-INDENTING-CHARACTER-OUTPUT-STREAM'
+    can be used as output destination for `FORMAT'.
 "
 
   (let* ((s (make-string-output-stream))
@@ -57,9 +60,41 @@
 
     (let ((result (get-output-stream-string s)))
       (trace-expr result)
-      (assert (equal result
+      (assert-local (equal result
 		     (format nil "    Hello,~%    world!~%    How are you?~%"))))))
 
+
+(deftest-local capturing-output ()
+    "
+    Checks: Output can be captured with `WITH-CAPTURING-OUTPUT-IN'.
+"
+  (with-capturing-output
+      (result
+	(format t "Hello, world!")
+	(format *error-output* " How are you?"))
+
+    (trace-expr result)
+    (assert-local (equal result "Hello, world! How are you?"))))
+
+
+(deftest-local indenting-standard-out ()
+    "
+    Checks: Indenting `*STANDARD-OUTPUT*' and `*ERROR-OUTPUT*'.
+
+    `WITH-INDENTED-OUTPUT' can be used to prefix and indent `*STANDARD-OUTPUT*' and `*ERROR-OUTPUT*'.  While
+    executing a block wrapped inton the is macro, both streams will be redirected to what was
+    `*STANDARD-OUTPUT*' just before the `WITH-INDENTED-OUTPUT' block.
+"
+
+  (with-capturing-output
+      (result
+	(with-indented-output (:indent 4)
+	  (format t "Hello,~%world!~%How are you?~%")))
+    (trace-expr result)
+    (assert (equal result
+		   (format nil "    Hello,~%    world!~%    How are you?~%")))))
+
+  
 ;;; * -------------------------------------------------------------------------------------------------------|
 ;;;   WRT the outline-* and comment-* variables, see the comment in test.lisp
 ;;;

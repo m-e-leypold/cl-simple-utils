@@ -36,6 +36,11 @@
    #+sbcl :wrapped-stream
    #+sbcl :indented-stream
    :maybe-indented-stream
+   #+sbcl :with-output-to
+   #+sbcl :with-error-to
+   #+sbcl :with-indented-output   
+   :with-maybe-indented-output
+   :with-capturing-output
    ))
 
 (in-package :de.m-e-leypold.cl-simple-utils/wrapped-streams)
@@ -74,15 +79,47 @@
 ;;  (write-string string  (wrapped-stream stream) :start start :end end))
 
 #+sbcl
-(defun indented-stream (stream &key
-				 indent
-				 (prefix (make-sequence 'string indent :initial-element #\Space)))
-    (make-instance 'basic-indenting-character-output-stream :wraps stream :prefix prefix))
+(defun indented-stream (stream &key indent prefix)
+  (if (not prefix)
+      (setf prefix (make-sequence 'string indent :initial-element #\Space)))
+  (make-instance 'basic-indenting-character-output-stream :wraps stream :prefix prefix))
 
 (defun maybe-indented-stream (stream &key indent prefix)
   (declare (ignorable indent prefix))
   #+sbcl (indented-stream stream :indent indent :prefix prefix)
   #-sbcl stream)
+
+
+(defmacro with-output-to (stream &body body)
+  `(let ((*standard-output* ,stream))
+     ,@body))
+
+
+(defmacro with-error-to (stream &body body)
+  `(let ((*error-output* ,stream))
+     ,@body))
+  
+(defmacro with-indented-output ((&key indent prefix) &body body)
+  (let ((wrapped (gensym "WRAPPED")))
+    `(let ((,wrapped (indented-stream *standard-output* :indent ,indent :prefix ,prefix)))
+       (with-output-to ,wrapped
+	 (with-error-to ,wrapped
+	   ,@body)))))
+
+(defmacro with-maybe-indented-output ((&key indent prefix) &body body)
+  #+sbcl `(with-indented-output (:indent ,indent :prefix ,prefix) ,@body)
+  #-sbcl `nil)
+
+(defmacro with-capturing-output ((var &body forms) &body body)
+  (let ((stream (gensym "STREAM")))
+    `(let ((,var nil))
+       (let ((,stream (make-string-output-stream)))
+	 (with-output-to ,stream
+	   (with-error-to ,stream
+	     ,@forms))
+	 (setf ,var (get-output-stream-string ,stream)))
+       ,@body)))
+	 
 
 
 ;; (defparameter w (indented-stream *standard-output* :prefix "    | "))
