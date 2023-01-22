@@ -42,6 +42,74 @@
 			       :de.m-e-leypold.cl-simple-utils)
 
 
+
+;;; * Heredoc + Friends -------------------------------------------------------------------------------------|
+
+(deftest-local multiline-string-literals ()
+    "
+     Check `HERE-TEXT' joins text lines to a single string at compile time
+"
+
+  (explain "Concatenation with prefix and indentation")
+
+  (let ((it (here-text (:indent 5 :prefix "| ")
+	      "Hello world!"
+	      "How are you?"
+	      "The end.")
+	    ))
+    (trace-expr it)
+    (assert-local (equal it
+			 (format nil "     | Hello world!~%     | How are you?~%     | The end.~%"))))
+
+  (explain "Concatenation with dedentation and prefix")
+
+  (let ((it (here-text (:dedent 2 :prefix ":")
+	      "   Hello world!"
+	      "   How are you?"
+	      "   The end.")
+	    ))
+    (assert-local (equal it
+			 (format nil ": Hello world!~%: How are you?~%: The end.~%")))
+    (trace-expr it))
+
+  (explain "Concatenation with dedentation delimiter")
+
+  (let ((it (here-text (:dedent-delimiter "| ")
+	      "   | Hello world!"
+	      "   |   How are you?"
+	      "   | The end.")
+	    ))
+    (assert-local (equal it
+			 (format nil "Hello world!~%  How are you?~%The end.~%")))
+    (trace-expr it))
+
+  (explain "Concatenating with a separator different from #\Newline")
+
+  (let ((it (here-text (:separator " +++ ")
+	      "Hello world!"
+	      "How are you?"
+	      "The end.")
+	    ))
+    (trace-expr it)
+    (assert-local (equal it
+			 (format nil "Hello world! +++ How are you? +++ The end. +++ "))))
+
+  (explain "Omitting the seaparator from the end")
+
+  (let ((it (here-text (:separator " +++ " :separator-at-end nil)
+	      "Hello world!"
+	      "How are you?"
+	      "The end.")
+	    ))
+    (trace-expr it)
+    (assert-local (equal it
+			 (format nil "Hello world! +++ How are you? +++ The end."))))
+
+  (explain "Trying the case of an empty list of lines")
+
+  (let ((it (here-text ())))
+    (trace-expr it)))
+
 ;;; * Wrapped streams ---------------------------------------------------------------------------------------|
 
 (deftest-local indenting-a-char-stream ()
@@ -94,7 +162,6 @@
     (assert (equal result
 		   (format nil "    Hello,~%    world!~%    How are you?~%")))))
 
-  
 ;;; * -------------------------------------------------------------------------------------------------------|
 ;;;   WRT the outline-* and comment-* variables, see the comment in test.lisp
 ;;;

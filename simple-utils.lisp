@@ -2,17 +2,17 @@
 ;;;
 ;;;   de.m-e-leypold.cl-simple-utils -- Some utility functions.
 ;;;   Copyright (C) 2022  M E Leypold
-;;;   
+;;;
 ;;;   This program is free software: you can redistribute it and/or modify
 ;;;   it under the terms of the GNU General Public License as published by
 ;;;   the Free Software Foundation, either version 3 of the License, or
 ;;;   (at your option) any later version.
-;;;   
+;;;
 ;;;   This program is distributed in the hope that it will be useful,
 ;;;   but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;;;   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;;;   GNU General Public License for more details.
-;;;   
+;;;
 ;;;   You should have received a copy of the GNU General Public License
 ;;;   along with this program.  If not, see <https://www.gnu.org/licenses/>.
 ;;;
@@ -34,6 +34,8 @@
   (:use :common-lisp)
   (:export
    :inject-package-local-nickname
+   :concatenate-lines
+   :here-text
    ))
 
 (in-package :de.m-e-leypold.cl-simple-utils)
@@ -52,7 +54,7 @@
 ;;;   TODO: Find a implementation for other lisp implementations or convert (ASSERT NIL ...)
 ;;;         with restarts to an ignorable warning.
 
-(defun inject-package-local-nickname (nickname for-package to-package)  
+(defun inject-package-local-nickname (nickname for-package to-package)
   "
   Inject package local nickname NICKNAME for package FOR-PACKAGE into TO-PACKAGE.
 "
@@ -60,6 +62,48 @@
 	   (assert (packagep to-p))
 	   (let ((*PACKAGE* to-p))
 	     (sb-ext:add-package-local-nickname nickname for-package)))
- 
+
   #-(or sbcl)
   (assert nil nil "No implementation for INJECT-PACKAGE-LOCAL-NICKNAME available." ))
+
+;;; * -- Concatenating lines to text blocks / paragraphs, here-text -----------------------------------------|
+
+
+(defun concatenate-lines (lines
+			   &key
+			     prefix (indent 0)
+			     dedent-delimiter (dedent 0)
+			     (separator #\Newline) (separator-at-end T))
+  (if (not prefix)
+      (setf prefix (make-sequence 'string indent :initial-element #\Space))
+      (if (> indent 0)
+	  (setf prefix
+		(concatenate 'string
+			     (make-sequence 'string indent :initial-element #\Space) prefix))))
+  (with-output-to-string (s)
+    (do* ((line (car lines) (car rest))
+	  (rest (cdr lines) (cdr rest)))
+	  ((not line) T)
+      (if dedent-delimiter
+	  (let ((pos (search dedent-delimiter line)))
+	    (if pos (setf dedent (+ pos (length dedent-delimiter))))))
+      (if (> dedent 0)
+	  (setf line (subseq line dedent)))
+      (format s "~A~A" prefix line)
+      (if (or separator-at-end rest)
+	  (format s "~A" separator)))))
+
+
+(defmacro here-text ((&key
+			prefix (indent 0)
+			dedent-delimiter (dedent 0)
+			(separator #\Newline) (separator-at-end T))
+		     &body lines)
+  (funcall #'concatenate-lines lines
+	   :prefix prefix
+	   :indent indent
+	   :dedent-delimiter dedent-delimiter
+	   :dedent dedent
+	   :separator separator
+	   :separator-at-end separator-at-end
+	   ))
