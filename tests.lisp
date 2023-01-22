@@ -45,9 +45,9 @@
 
 ;;; * Heredoc + Friends -------------------------------------------------------------------------------------|
 
-(deftest-local multiline-string-literals ()
+(deftest! multiline-string-literals ()
     "
-     Check `HERE-TEXT' joins text lines to a single string at compile time
+    `HERE-TEXT' joins text lines to a single string at compile time.
 "
 
   (explain "Concatenation with prefix and indentation")
@@ -58,32 +58,32 @@
 	      "The end.")
 	    ))
     (trace-expr it)
-    (assert-local (equal it
+    (assert! (equal it
 			 (format nil "     | Hello world!~%     | How are you?~%     | The end.~%"))))
 
-  (explain "Concatenation with dedentation and prefix")
+  (explain "Concatenation with dedentation and prefix.")
 
   (let ((it (here-text (:dedent 2 :prefix ":")
 	      "   Hello world!"
 	      "   How are you?"
 	      "   The end.")
 	    ))
-    (assert-local (equal it
+    (assert! (equal it
 			 (format nil ": Hello world!~%: How are you?~%: The end.~%")))
     (trace-expr it))
 
-  (explain "Concatenation with dedentation delimiter")
+  (explain "Concatenation with dedentation delimiter.")
 
   (let ((it (here-text (:dedent-delimiter "| ")
 	      "   | Hello world!"
 	      "   |   How are you?"
 	      "   | The end.")
 	    ))
-    (assert-local (equal it
+    (assert! (equal it
 			 (format nil "Hello world!~%  How are you?~%The end.~%")))
     (trace-expr it))
 
-  (explain "Concatenating with a separator different from #\Newline")
+  (explain "Concatenating with a separator different from #\Newline.")
 
   (let ((it (here-text (:separator " +++ ")
 	      "Hello world!"
@@ -91,10 +91,10 @@
 	      "The end.")
 	    ))
     (trace-expr it)
-    (assert-local (equal it
+    (assert! (equal it
 			 (format nil "Hello world! +++ How are you? +++ The end. +++ "))))
 
-  (explain "Omitting the seaparator from the end")
+  (explain "Omitting the separator from the end.")
 
   (let ((it (here-text (:separator " +++ " :separator-at-end nil)
 	      "Hello world!"
@@ -102,17 +102,17 @@
 	      "The end.")
 	    ))
     (trace-expr it)
-    (assert-local (equal it
+    (assert! (equal it
 			 (format nil "Hello world! +++ How are you? +++ The end."))))
 
-  (explain "Trying the case of an empty list of lines")
+  (explain "Trying the case of an empty list of lines.")
 
   (let ((it (here-text ())))
     (trace-expr it)))
 
 ;;; * Wrapped streams ---------------------------------------------------------------------------------------|
 
-(deftest-local indenting-a-char-stream ()
+(deftest! indenting-a-char-stream ()
     "
     Checks: Indentation via `BASIC-INDENTING-CHARACTER-OUTPUT-STREAM'
 
@@ -128,11 +128,11 @@
 
     (let ((result (get-output-stream-string s)))
       (trace-expr result)
-      (assert-local (equal result
+      (assert! (equal result
 		     (format nil "    Hello,~%    world!~%    How are you?~%"))))))
 
 
-(deftest-local capturing-output ()
+(deftest! capturing-output ()
     "
     Checks: Output can be captured with `WITH-CAPTURING-OUTPUT-IN'.
 "
@@ -142,15 +142,15 @@
 	(format *error-output* " How are you?"))
 
     (trace-expr result)
-    (assert-local (equal result "Hello, world! How are you?"))))
+    (assert! (equal result "Hello, world! How are you?"))))
 
 
-(deftest-local indenting-standard-out ()
+(deftest! indenting-standard-out ()
     "
     Checks: Indenting `*STANDARD-OUTPUT*' and `*ERROR-OUTPUT*'.
 
     `WITH-INDENTED-OUTPUT' can be used to prefix and indent `*STANDARD-OUTPUT*' and `*ERROR-OUTPUT*'.  While
-    executing a block wrapped inton the is macro, both streams will be redirected to what was
+    executing a block wrapped into this macro, both streams will be redirected to what was
     `*STANDARD-OUTPUT*' just before the `WITH-INDENTED-OUTPUT' block.
 "
 
@@ -159,7 +159,7 @@
 	(with-indented-output (:indent 4)
 	  (format t "Hello,~%world!~%How are you?~%")))
     (trace-expr result)
-    (assert (equal result
+    (assert! (equal result
 		   (format nil "    Hello,~%    world!~%    How are you?~%")))))
 
 ;;; * -------------------------------------------------------------------------------------------------------|

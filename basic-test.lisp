@@ -29,13 +29,18 @@
   (:documentation "Testing cl-simple-utils")
   (:use
    :common-lisp
-   :de.m-e-leypold.cl-simple-utils)
+   :de.m-e-leypold.cl-simple-utils
+   :de.m-e-leypold.cl-simple-utils/wrapped-streams)
   (:export
+   :run-tests!
+   :assert!
+   :deftest!
    :run-tests-local
    :deftest-local
    :assert-local
    :explain
    :trace-expr
+   :*indentation-step*
    ))
 
 (in-package :de.m-e-leypold.cl-simple-utils/basic-test )
@@ -73,9 +78,9 @@
 (defvar *tests-local* '())
 (defvar *current-test-local* nil)
 
-(defmacro assert-local (cond)
+(defmacro assert! (cond)
   `(progn
-     (format t "~&  Checking: ~S.~%" (quote ,cond))
+     (format t "~&=> Checking: ~S.~%" (quote ,cond))
      (if ,cond
 	 t
 	 (progn
@@ -84,6 +89,9 @@
 		  :test-name *current-test-local*
 		  :failed-condition (quote ,cond))))))
 
+(defmacro assert-local (cond)
+  `(assert! ,cond))
+
 (defun test-failure (&key failed-condition explanation)
   (error 'test-failure
 	 :test-name *current-test-local*
@@ -91,19 +99,25 @@
 	 :explanation explanation))
 
 
-(defmacro deftest-local (name args docstring &body body)
-  (assert (not args) nil (format nil "arguments of DEFTEST-LOCAL ~S must be empty" name))
+(defvar *indentation-step* 4)
+
+(defmacro deftest! (name args docstring &body body)
+  (assert (not args) nil (format nil "arguments of DEFTEST! ~S must be empty" name))
   `(progn
      (setf *tests-local* (adjoin (quote ,name) *tests-local*))
      (defun ,name ()
      ,docstring
        (let ((*current-test-local* (quote ,name)))
 	 (format t "~&~a: Test ~S ...~%" *program-name* *current-test-local*)
-	 (format t "~&   ~a~%" (documentation (quote ,name) 'function))
-	 (progn ,@body)
-	 (format t "~&~a: => OK (~S).~%" *program-name* *current-test-local*)))))
+	 (format t "~&~a~%" (documentation (quote ,name) 'function))
+	 (with-indented-output (:indent *indentation-step*)
+	   (progn ,@body))
+	 (format t "~%~a: ... => OK (~S).~%" *program-name* *current-test-local*)))))
 
-(defun run-tests-local ()
+(defmacro deftest-local (name args docstring &body body)
+  `(deftest! ,name ,args ,docstring ,@body))
+
+(defun run-tests! ()
   (format t "~&~%~a: Will run ~a tests: ~S.~%"
 	  *program-name* (length *tests-local*) (reverse *tests-local*))
   (format t "  First failing test will abort this test run.~%")
@@ -112,6 +126,9 @@
     (funcall test))
   (format t "~%~a: All ~a tests succeeded: ~a.~%"
 	  *program-name* (length *tests-local*) (reverse *tests-local*)))
+
+(defmacro run-tests-local ()
+  `(run-tests!))
 
 (defvar *flags* '()
   "A variable into which symbols will be adjoined to trace that forms have actually been evaluated.
@@ -128,12 +145,12 @@
   (setf *flags* '()))
 
 (defun explain (message)
-  (format t "~&  ~a~%" message))
+  (format t "~&=> ~a~%" message))
 
 (defmacro trace-expr (expr)
   (let ((package *package*))
     `(let ((*package* ,package))
-       (format t "~&  ~S => ~S~%" (quote ,expr) ,expr))))
+       (format t "~&~S => ~S~%" (quote ,expr) ,expr))))
 
 ;;; * -------------------------------------------------------------------------------------------------------|
 ;;; WRT the outline-* and comment-* variables, see the comment in test.lisp

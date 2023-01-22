@@ -36,7 +36,7 @@
 (defsystem "de.m-e-leypold.cl-simple-utils/basic-test"
   :author "M E Leypold [elegant-weapons ( AT) m-e-leypold (DOT) de]"
   :licence "GPL3"
-  :depends-on ("de.m-e-leypold.cl-simple-utils")
+  :depends-on ("de.m-e-leypold.cl-simple-utils" "de.m-e-leypold.cl-simple-utils/wrapped-streams")
   :description "An untested test framework"
   :components ((:file "basic-test")))
 
