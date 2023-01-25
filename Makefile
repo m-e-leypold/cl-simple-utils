@@ -57,7 +57,12 @@ git-setup:                          # This are the upstream repositories
 	git fetch GITLAB
 	git fetch GITHUB
 
-publish:                            # We only release from main
+publish: check-all
+	git branch | grep '^[*] main$$' # We only release from main
+	if git status -s | cut -c1-2  | grep ' [^ ?]'; \
+	   then git status -s ; false; \
+           else true; \
+        fi
 	git push GITLAB main
 	git push GITHUB main
 	git push origin main
