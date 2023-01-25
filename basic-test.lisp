@@ -41,7 +41,11 @@
    :explain
    :trace-expr
    :*indentation-step*
-   ))
+   :*program-name*
+   :*flags*
+   :set-flag
+   :flag-set-p
+   :clear-flags))
 
 (in-package :de.m-e-leypold.cl-simple-utils/basic-test )
 
