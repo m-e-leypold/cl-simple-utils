@@ -45,7 +45,8 @@
    :*flags*
    :set-flag
    :flag-set-p
-   :clear-flags))
+   :clear-flags
+   :test-failure))
 
 (in-package :de.m-e-leypold.cl-simple-utils/basic-test )
 
