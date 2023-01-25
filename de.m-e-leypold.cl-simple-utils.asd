@@ -54,7 +54,9 @@
   :author "M E Leypold [elegant-weapons ( AT) m-e-leypold (DOT) de]"
   :licence "GPL3"
   :description "Load all systems in CL-SIMPLE-UTILS"
-  :depends-on ("de.m-e-leypold.cl-simple-utils" "de.m-e-leypold.cl-simple-utils/wrapped-streams"))
+  :depends-on ("de.m-e-leypold.cl-simple-utils"
+	       "de.m-e-leypold.cl-simple-utils/wrapped-streams"
+	       "de.m-e-leypold.cl-simple-utils/basic-test"))
 
 (defsystem "de.m-e-leypold.cl-simple-utils/prerequisites"
   :author "M E Leypold [elegant-weapons ( AT) m-e-leypold (DOT) de]"
