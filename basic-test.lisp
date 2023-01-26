@@ -1,6 +1,6 @@
 ;;; ------------------------------------------------------------------------*- common-lisp -*-|
 ;;;
-;;;   de.m-e-leypold.cl-simple-test -- a simple testing framework for common lisp.
+;;;   de.m-e-leypold.cl-simple-utils -- basic-test, a very simple test framework
 ;;;   Copyright (C) 2022  M E Leypold
 ;;;
 ;;;   This program is free software: you can redistribute it and/or modify
@@ -35,13 +35,12 @@
    :run-tests!
    :assert!
    :deftest!
-   :run-tests-local
-   :deftest-local
-   :assert-local
    :explain
    :trace-expr
    :*indentation-step*
    :*program-name*
+   :*tests*
+   :*current-test*
    :*flags*
    :set-flag
    :flag-set-p
@@ -80,8 +79,8 @@
     (if (explanation failure)
 	(format stream " :explanation ~S" (explanation failure)))))
 
-(defvar *tests-local* '())
-(defvar *current-test-local* nil)
+(defvar *tests* '())
+(defvar *current-test* nil)
 
 (defmacro assert! (cond)
   `(progn
@@ -89,17 +88,15 @@
      (if ,cond
 	 t
 	 (progn
-	   (format t "  *** Check failed in ~S ***~%" *current-test-local*)
+	   (format t "  *** Check failed in ~S ***~%" *current-test*)
 	   (error 'test-failure
-		  :test-name *current-test-local*
+		  :test-name *current-test*
 		  :failed-condition (quote ,cond))))))
 
-(defmacro assert-local (cond)
-  `(assert! ,cond))
 
 (defun test-failure (&key failed-condition explanation)
   (error 'test-failure
-	 :test-name *current-test-local*
+	 :test-name *current-test*
 	 :failed-condition failed-condition
 	 :explanation explanation))
 
@@ -109,31 +106,25 @@
 (defmacro deftest! (name args docstring &body body)
   (assert (not args) nil (format nil "arguments of DEFTEST! ~S must be empty" name))
   `(progn
-     (setf *tests-local* (adjoin (quote ,name) *tests-local*))
+     (setf *tests* (adjoin (quote ,name) *tests*))
      (defun ,name ()
      ,docstring
-       (let ((*current-test-local* (quote ,name)))
-	 (format t "~&~a: Test ~S ...~%" *program-name* *current-test-local*)
+       (let ((*current-test* (quote ,name)))
+	 (format t "~&~a: Test ~S ...~%" *program-name* *current-test*)
 	 (format t "~&~a~%" (documentation (quote ,name) 'function))
 	 (with-indented-output (:indent *indentation-step*)
 	   (progn ,@body))
-	 (format t "~%~a: ... => OK (~S).~%" *program-name* *current-test-local*)))))
-
-(defmacro deftest-local (name args docstring &body body)
-  `(deftest! ,name ,args ,docstring ,@body))
+	 (format t "~%~a: ... => OK (~S).~%" *program-name* *current-test*)))))
 
 (defun run-tests! ()
   (format t "~&~%~a: Will run ~a tests: ~S.~%"
-	  *program-name* (length *tests-local*) (reverse *tests-local*))
+	  *program-name* (length *tests*) (reverse *tests*))
   (format t "  First failing test will abort this test run.~%")
-  (dolist (test (reverse *tests-local*))
+  (dolist (test (reverse *tests*))
     (format t "~%")
     (funcall test))
   (format t "~%~a: All ~a tests succeeded: ~a.~%"
-	  *program-name* (length *tests-local*) (reverse *tests-local*)))
-
-(defmacro run-tests-local ()
-  `(run-tests!))
+	  *program-name* (length *tests*) (reverse *tests*)))
 
 (defvar *flags* '()
   "A variable into which symbols will be adjoined to trace that forms have actually been evaluated.

@@ -40,7 +40,7 @@
 
 ;;; * Actually executing the tests --------------------------------------------------------------------------|
 
-(run-tests-local)
+(run-tests!)
 
 ;;; * -------------------------------------------------------------------------------------------------------|
 ;;; WRT the outline-* and comment-* variables, see the comment in test.lisp
