@@ -70,11 +70,10 @@
 ;;; * -- Package docstrings as symbols ----------------------------------------------------------------------|
 
 (defmacro defpackage-doc (&optional (sym))
-  (format T "sym => ~D~%" sym)
   (if (not sym)
-      (setf sym (intern "DOC" *package*)))  
+      (setf sym (intern "DOC" *package*)))
   (let ((docstring (documentation *package* T)))
-    `(defvar ,sym (format nil "#<DEFPACKAGE-DOC anchor for ~a>" (package-name *package*)) ,docstring)))
+    `(defun ,sym () ,docstring nil)))
 
 ;;; * -- Concatenating lines to text blocks / paragraphs, here-text -----------------------------------------|
 

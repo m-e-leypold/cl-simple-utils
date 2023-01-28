@@ -45,7 +45,11 @@
    :set-flag
    :flag-set-p
    :clear-flags
-   :test-failure))
+   :test-failure
+   :*test-directories*
+   :deftest-registry!
+   :end-test-registry!
+   ))
 
 (in-package :de.m-e-leypold.cl-simple-utils/basic-test )
 
@@ -101,7 +105,43 @@
 	 :explanation explanation))
 
 
+(defvar *test-directories*'())
+
 (defvar *indentation-step* 4)
+
+(defmacro deftest-registry! (&optional (sym))
+  (if (not sym) ;; TODO: Or symbol-package != *package*
+      (setf sym (intern "*REGISTRY*" *package*)))
+  `(progn
+     (defvar ,sym '() ,(format nil "Test registry defined by `DEFTEST-REGISTRY!' for package ~S" *package*))
+     (setf *test-directories* (adjoin (quote ,sym) *test-directories*))))
+
+(defmacro end-test-registry! (&optional (sym))
+  (if (not sym) ;; TODO: Or symbol-package != *package*
+      (setf sym (intern "*REGISTRY*" *package*)))
+  (let ((newline (format nil "~%")))
+    `(progn
+       (setf *test-directories* (remove (quote ,sym) *test-directories*))
+       (let ((fragments '()))
+	 (dolist (testsym ,sym)
+	   (push ,newline fragments)
+	   (push (documentation testsym 'function) fragments)
+	   (push ,newline fragments)
+	   (let ((*package* (find-package "KEYWORD"))) (push (format nil "~S" testsym) fragments))
+	   (push " - " fragments)
+	   (push (symbol-name testsym) fragments))
+	 (setf (documentation (quote ,sym) 'variable) (apply #'concatenate 'string fragments))))))
+
+
+;;;       (dotimes (testsym (symbol-value sym))
+;;; 	(push (documentation testsym 'function) fragments)
+;;; 	(push (symbol-name testsym) fragments)))))
+;;;       ;(funcall #'concatenate 'string fragments))))
+
+(defun register-test (sym)
+  (dolist (dir *test-directories*)
+    (if (equal (symbol-package sym) (symbol-package dir))
+	(set dir (adjoin sym (symbol-value dir))))))
 
 (defmacro deftest! (name args docstring &body body)
   (assert (not args) nil (format nil "arguments of DEFTEST! ~S must be empty" name))
@@ -114,7 +154,8 @@
 	 (format t "~&~a~%" (documentation (quote ,name) 'function))
 	 (with-indented-output (:indent *indentation-step*)
 	   (progn ,@body))
-	 (format t "~%~a: ... => OK (~S).~%" *program-name* *current-test*)))))
+	 (format t "~%~a: ... => OK (~S).~%" *program-name* *current-test*)))
+     (register-test (quote ,name))))
 
 (defun run-tests! ()
   (format t "~&~%~a: Will run ~a tests: ~S.~%"
