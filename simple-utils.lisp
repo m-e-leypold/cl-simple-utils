@@ -73,7 +73,7 @@
   (if (not sym)
       (setf sym (intern "DOC" *package*)))
   (let ((docstring (documentation *package* T)))
-    `(defun ,sym () ,docstring nil)))
+    `(defun ,sym () ,(concatenate 'string (format nil "~%~S" *package*) docstring) nil)))
 
 ;;; * -- Concatenating lines to text blocks / paragraphs, here-text -----------------------------------------|
 
