@@ -37,6 +37,7 @@
    :defpackage-doc
    :concatenate-lines
    :here-text
+   :defrestart
    ))
 
 (in-package :de.m-e-leypold.cl-simple-utils)
@@ -74,6 +75,13 @@
       (setf sym (intern "DOC" *package*)))
   (let ((docstring (documentation *package* T)))
     `(defun ,sym () ,(concatenate 'string (format nil "~%~S" *package*) docstring) nil)))
+
+;;; * -- Restart as function with documentation -------------------------------------------------------------|
+
+(defmacro defrestart (name arglist docstring)
+  (assert (not arglist)) ;; must be empty
+  `(defun ,name () ,docstring (invoke-restart (quote ,name))))
+
 
 ;;; * -- Concatenating lines to text blocks / paragraphs, here-text -----------------------------------------|
 
