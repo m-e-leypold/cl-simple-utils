@@ -27,6 +27,7 @@ TEST-RUNNER     = $(strip $(wildcard test.lisp))
 AUTHOR-ID      ?= m-e-leypold
 GITLAB         ?= git@gitlab.com:$(AUTHOR-ID)/$(SHORT-NAME).git
 GITHUB         ?= git@github.com:$(AUTHOR-ID)/$(SHORT-NAME).git
+ORIGIN         ?= LSD:projects/$(SHORT-NAME).git
 
 $(info PRIMARY-SYSTEM = $(PRIMARY-SYSTEM))
 $(info SHORT-NAME     = $(SHORT-NAME))
@@ -49,6 +50,8 @@ endif
 
 # The procedures below are for the original author of this package.
 
+dev: git-setup Project
+
 git-setup:                          # This are the upstream repositories
 	git remote rm GITLAB || true
 	git remote rm GITHUP || true
@@ -56,6 +59,12 @@ git-setup:                          # This are the upstream repositories
 	git remote add GITHUB $(GITHUB)
 	git fetch GITLAB
 	git fetch GITHUB
+
+Project:
+	git clone -b project . Project
+	cd Project && git remote rm origin
+	cd Project && git remote add origin $(ORIGIN)
+	cd Project && git pull
 
 publish: check-all
 	git branch | grep '^[*] main$$' # We only release from main
