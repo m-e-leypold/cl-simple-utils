@@ -54,19 +54,27 @@ dev: git-setup Project
 
 git-setup:                          # This are the upstream repositories
 	git remote rm GITLAB || true
-	git remote rm GITHUP || true
+	git remote rm GITHUB || true
 	git remote add GITLAB $(GITLAB)
 	git remote add GITHUB $(GITHUB)
 	git fetch GITLAB
 	git fetch GITHUB
 
 Project:
-	git clone -b project . Project
-	cd Project && git remote rm origin
-	cd Project && git remote add origin $(ORIGIN)
-	cd Project && git pull
+	git clone -b project --single-branch $(ORIGIN) Project
 
-publish: check-all
+publish: publish-project publish-source
+
+publish-project:
+	cd Project && git branch | grep '^[*] project$$' # We only release from project
+	cd Project && \
+           if git status -s | cut -c1-2  | grep ' [^ ?]'; \
+	      then git status -s ; false; \
+           else true; \
+        fi
+	cd Project && git push origin project
+
+publish-source: check-all
 	git branch | grep '^[*] main$$' # We only release from main
 	if git status -s | cut -c1-2  | grep ' [^ ?]'; \
 	   then git status -s ; false; \
@@ -75,9 +83,6 @@ publish: check-all
 	git push GITLAB main
 	git push GITHUB main
 	git push origin main
-	git push origin project
-	git push origin
-
 
 clean-fasl-cache:
 	rm -rf $(HOME)/.cache/common-lisp
