@@ -75,6 +75,8 @@ publish: check-all
 	git push GITLAB main
 	git push GITHUB main
 	git push origin main
+	git push origin project
+	git push origin
 
 
 clean-fasl-cache:
