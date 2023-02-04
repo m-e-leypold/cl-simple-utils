@@ -73,6 +73,7 @@ publish-project:
            else true; \
         fi
 	cd Project && git push origin project
+	git fetch
 
 publish-source: check-all
 	git branch | grep '^[*] main$$' # We only release from main
