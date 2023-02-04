@@ -63,7 +63,7 @@ git-setup:                          # This are the upstream repositories
 Project:
 	git clone -b project --single-branch $(ORIGIN) Project
 
-publish: publish-project publish-source
+publish: publish-source publish-project 
 
 publish-project:
 	cd Project && git branch | grep '^[*] project$$' # We only release from project
