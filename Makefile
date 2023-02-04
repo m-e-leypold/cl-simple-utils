@@ -61,7 +61,13 @@ git-setup:                          # This are the upstream repositories
 	git fetch GITHUB
 
 Project:
-	git clone -b project --single-branch $(ORIGIN) Project
+	git clone -b project --single-branch . Project
+	cd Project && git remote add UPSTREAM $(ORIGIN)
+	cd Project && git fetch UPSTREAM
+	cd Project && git merge UPSTREAM/project
+	cd Project && git push UPSTREAM project
+	cd Project && git push origin project
+
 
 publish: publish-source publish-project 
 
@@ -73,7 +79,7 @@ publish-project:
            else true; \
         fi
 	cd Project && git push origin project
-	git fetch
+	git push
 
 publish-source: check-all
 	git branch | grep '^[*] main$$' # We only release from main
