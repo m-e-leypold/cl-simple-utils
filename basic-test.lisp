@@ -116,6 +116,9 @@
      (defvar ,sym '() ,(format nil "Test registry defined by `DEFTEST-REGISTRY!' for package ~S" *package*))
      (setf *test-directories* (adjoin (quote ,sym) *test-directories*))))
 
+;; A possible alternative to END-TEST-REGISTRY would be to just define a specialized documentation method on
+;; the symbol that does the update just in time.
+
 (defmacro end-test-registry! (&optional (sym))
   (if (not sym) ;; TODO: Or symbol-package != *package*
       (setf sym (intern "*REGISTRY*" *package*)))
@@ -130,13 +133,8 @@
 	   (let ((*package* (find-package "KEYWORD"))) (push (format nil "~S" testsym) fragments))
 	   (push " - " fragments)
 	   (push (symbol-name testsym) fragments))
+	 (push ,newline fragments)
 	 (setf (documentation (quote ,sym) 'variable) (apply #'concatenate 'string fragments))))))
-
-
-;;;       (dotimes (testsym (symbol-value sym))
-;;; 	(push (documentation testsym 'function) fragments)
-;;; 	(push (symbol-name testsym) fragments)))))
-;;;       ;(funcall #'concatenate 'string fragments))))
 
 (defun register-test (sym)
   (dolist (dir *test-directories*)
@@ -151,6 +149,7 @@
      ,docstring
        (let ((*current-test* (quote ,name)))
 	 (format t "~&~a: Test ~S ...~%" *program-name* *current-test*)
+	 (format t "    ~a~%" (symbol-full-name *current-test*))
 	 (format t "~&~a~%" (documentation (quote ,name) 'function))
 	 (with-indented-output (:indent *indentation-step*)
 	   (progn ,@body))
@@ -164,8 +163,9 @@
   (dolist (test (reverse *tests*))
     (format t "~%")
     (funcall test))
-  (format t "~%~a: All ~a tests succeeded: ~a.~%"
-	  *program-name* (length *tests*) (reverse *tests*)))
+  (with-full-symbol-names
+    (format t "~%~a: All ~a tests succeeded: ~S.~%"
+	    *program-name* (length *tests*) (reverse *tests*))))
 
 (defvar *flags* '()
   "A variable into which symbols will be adjoined to trace that forms have actually been evaluated.

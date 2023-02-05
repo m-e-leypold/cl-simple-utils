@@ -38,6 +38,8 @@
    :concatenate-lines
    :here-text
    :defrestart
+   :symbol-full-name
+   :with-full-symbol-names
    ))
 
 (in-package :de.m-e-leypold.cl-simple-utils)
@@ -74,7 +76,7 @@
   (if (not sym)
       (setf sym (intern "-DOC-" *package*)))
   (let ((docstring (documentation *package* T)))
-    `(defun ,sym () ,(concatenate 'string (format nil "~%~S" *package*) docstring) nil)))
+    `(defun ,sym () ,docstring nil)))
 
 ;;; * -- Restart as function with documentation -------------------------------------------------------------|
 
@@ -124,3 +126,16 @@
 	   :separator separator
 	   :separator-at-end separator-at-end
 	   ))
+
+;;; * -- Symbols --------------------------------------------------------------------------------------------|
+;;; ** -- Full names ----------------------------------------------------------------------------------------|
+
+(defmacro with-full-symbol-names (&body body)
+  `(let ((*package* (find-package "KEYWORD")))
+    ,@body))
+
+(defun symbol-full-name (symbol)
+  (with-full-symbol-names
+      (format nil "~S" symbol)))
+
+

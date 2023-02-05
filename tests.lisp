@@ -162,6 +162,21 @@
     (assert! (equal result
 		   (format nil "    Hello,~%    world!~%    How are you?~%")))))
 
+
+;;; * Symbol names ------------------------------------------------------------------------------------------|
+
+(deftest! full-symbol-names ()
+    "
+    Checks that `SYMBOL-FULL-NAME' returns a full name (with package name) and format with ~S works the same
+    in a `WITH-FULL-SYMBOL-NAMES'.
+"
+
+  (assert! (equal (symbol-full-name 'SOME-SYMBOL)
+		  "DE.M-E-LEYPOLD.CL-SIMPLE-UTILS/TESTS::SOME-SYMBOL"))
+
+  (assert! (equal (with-full-symbol-names (format nil "- ~S -" 'SOME-SYMBOL))
+		  "- DE.M-E-LEYPOLD.CL-SIMPLE-UTILS/TESTS::SOME-SYMBOL -")))
+
 ;;; * -------------------------------------------------------------------------------------------------------|
 ;;;   WRT the outline-* and comment-* variables, see the comment in test.lisp
 ;;;
