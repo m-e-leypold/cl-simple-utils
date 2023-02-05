@@ -72,7 +72,7 @@
 
 (defmacro defpackage-doc (&optional (sym))
   (if (not sym)
-      (setf sym (intern "DOC" *package*)))
+      (setf sym (intern "-DOC-" *package*)))
   (let ((docstring (documentation *package* T)))
     `(defun ,sym () ,(concatenate 'string (format nil "~%~S" *package*) docstring) nil)))
 

@@ -55,6 +55,7 @@
   :licence "GPL3"
   :description "Load all systems in CL-SIMPLE-UTILS"
   :depends-on ("de.m-e-leypold.cl-simple-utils"
+	       "de.m-e-leypold.cl-simple-utils/tests"
 	       "de.m-e-leypold.cl-simple-utils/wrapped-streams"
 	       "de.m-e-leypold.cl-simple-utils/basic-test"))
 
