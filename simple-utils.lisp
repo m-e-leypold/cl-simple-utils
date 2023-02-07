@@ -37,6 +37,7 @@
    :defpackage-doc
    :concatenate-lines
    :here-text
+   :here-text*
    :defrestart
    :symbol-full-name
    :with-full-symbol-names
@@ -125,6 +126,16 @@
 	   :dedent dedent
 	   :separator separator
 	   :separator-at-end separator-at-end
+	   ))
+
+(defmacro here-text* (&body lines)
+  (funcall #'concatenate-lines lines
+	   :prefix nil
+	   :indent 0
+	   :dedent-delimiter nil
+	   :dedent 0
+	   :separator #\Space
+	   :separator-at-end nil
 	   ))
 
 ;;; * -- Symbols --------------------------------------------------------------------------------------------|
