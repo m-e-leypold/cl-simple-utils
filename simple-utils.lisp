@@ -41,6 +41,7 @@
    :defrestart
    :symbol-full-name
    :with-full-symbol-names
+   :with-gensyms
    ))
 
 (in-package :de.m-e-leypold.cl-simple-utils)
@@ -150,3 +151,9 @@
       (format nil "~S" symbol)))
 
 
+
+;;; ** -- with-gensyms --------------------------------------------------------------------------------------|
+
+(defmacro with-gensyms ((&rest names) &body body)
+  `(let ,(loop for n in names collect `(,n (gensym (concatenate 'string "G." (symbol-name (quote ,n)) "."))))
+     ,@body))
