@@ -113,7 +113,8 @@
   (if (not sym) ;; TODO: Or symbol-package != *package*
       (setf sym (intern "*REGISTRY*" *package*)))
   `(progn
-     (defvar ,sym '() ,(format nil "Test registry defined by `DEFTEST-REGISTRY!' for package ~S" *package*))
+     (defparameter ,sym '()
+       ,(format nil "Test registry defined by `DEFTEST-REGISTRY!' for package ~S" *package*))
      (setf *test-directories* (adjoin (quote ,sym) *test-directories*))))
 
 ;; A possible alternative to END-TEST-REGISTRY would be to just define a specialized documentation method on
@@ -134,7 +135,9 @@
 	   (push " - " fragments)
 	   (push (symbol-name testsym) fragments))
 	 (push ,newline fragments)
-	 (setf (documentation (quote ,sym) 'variable) (apply #'concatenate 'string fragments))))))
+	 (setf (documentation (quote ,sym) 'variable) (apply #'concatenate 'string fragments))
+	 (setf ,sym (reverse ,sym))
+	 ))))
 
 (defun register-test (sym)
   (dolist (dir *test-directories*)

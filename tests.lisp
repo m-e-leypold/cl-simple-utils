@@ -41,8 +41,6 @@
 			       :de.m-e-leypold.cl-simple-utils/tests
 			       :de.m-e-leypold.cl-simple-utils)
 
-
-
 ;;; * Heredoc + Friends -------------------------------------------------------------------------------------|
 
 (deftest! multiline-string-literals ()
@@ -176,6 +174,59 @@
 
   (assert! (equal (with-full-symbol-names (format nil "- ~S -" 'SOME-SYMBOL))
 		  "- DE.M-E-LEYPOLD.CL-SIMPLE-UTILS/TESTS::SOME-SYMBOL -")))
+
+
+;;; * Basic Test --------------------------------------------------------------------------------------------|
+;;; ** Test registry ----------------------------------------------------------------------------------------|
+;;;
+;;;    The following test is a bit tricky, because it tests an aspect of the same framework that is used for
+;;;    testing. So, during the test, various global state is reset to initial values, new tests are defined,
+;;;    but original state is restored afterwards.
+;;;
+;;;    Changing any of the global state handling might break the test and require that the test is adapted.
+;;;    This test, unfortunately, is not structure-shy.
+
+(defparameter *registry-for-test* '() "Registry we use for `TEST-REGISTRY-AND-DESCRIPTION'")
+
+(deftest! test-registry-and-description ()
+    "
+    Checks how tests are registered and test documentation is synthesized with `DEFTEST-RGISTRY!'
+"
+
+  (explain "Defining some tests within locally established framework state.")
+
+  (let ((docstring ""))
+    (let ((*tests* '()))
+      (deftest-registry! *registry-for-test*)
+
+      (deftest! t1 ()
+	  "
+          Checks for something1."
+	)
+
+      (deftest! t2 ()
+	  "
+          Checks for something2."
+	)
+      (end-test-registry! *registry-for-test*)
+
+      (setf docstring
+	    (documentation '*registry-for-test* 'variable)))
+
+    (format t "DOCSTRING => ~%~S~%" docstring)
+    (format t "*REGISTRY-FOR-TEST* => ~A~%" *registry-for-test*)
+
+    (assert! (equal *registry-for-test* '(T1 T2))) ;; now in order of definition
+    (assert! (equal docstring
+		    (here-text ()
+		      ""
+		      "T1 - DE.M-E-LEYPOLD.CL-SIMPLE-UTILS/TESTS::T1"
+		      ""
+		      "          Checks for something1."
+		      "T2 - DE.M-E-LEYPOLD.CL-SIMPLE-UTILS/TESTS::T2"
+		      ""
+		      "          Checks for something2.")
+		    ))))
 
 ;;; * -------------------------------------------------------------------------------------------------------|
 ;;;   WRT the outline-* and comment-* variables, see the comment in test.lisp
