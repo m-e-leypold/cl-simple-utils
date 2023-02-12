@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+- Source code: [HEAD at gitlab.com][unreleased].
+- Diff to previous release: [Compare with 1.0.0][unreleased/diff].
+
+[unreleased]:      https://gitlab.com/m-e-leypold/cl-simple-utils/-/commits/main/
+[unreleased/diff]: https://gitlab.com/m-e-leypold/cl-simple-utils/-/compare/1.0.0...main
+
 
 ## [1.0.0]
 
@@ -17,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Compatibility
 
 The code base uses SBCL specific features, which have not been
-bound/implemented for other lisps. It might be
+bound/implemented for other lisps.
 
 
 ### Added
