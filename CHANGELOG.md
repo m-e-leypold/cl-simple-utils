@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [unreleased]:      https://gitlab.com/m-e-leypold/cl-simple-utils/-/commits/main/
 [unreleased/diff]: https://gitlab.com/m-e-leypold/cl-simple-utils/-/compare/1.0.0...main
 
+### Added
+
+- Makefile: Rules to push release tags.
+
+### Fixed
+
+- CHANGELOG: Typo in version 1.0.0.
 
 ## [1.0.0]
 
