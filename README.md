@@ -11,6 +11,23 @@ The point is, that some of those functions are already needed for the
 development infrastructure of UNCOMMON-LISP, so need to be developed
 earlier, but can only be tested later when CL-TEST is already working.
 
+Sources
+-------
+
+Sources are available [at gitlab](https://gitlab.com/m-e-leypold/cl-simple-utils/-/tree/main)
+and [at github]().
+
+Releases are marked via annoted tags, [here at
+gitlab](https://gitlab.com/m-e-leypold/cl-simple-utils/-/tags) and
+[here at
+github](https://github.com/m-e-leypold/cl-simple-utils/tags). 
+
+An annotated tag is totally sufficient as a release instrument and is
+how Git is intended to work. Pity that both sites are not willing to
+define a release just by getting an annotated tag pushed, and I'm not
+willing to jump through hoops only to get locked into provider
+specific addons. So you won't see any releases at those sites, only
+annotated tags.
 
 License and copyright
 ---------------------
