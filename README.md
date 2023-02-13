@@ -14,13 +14,13 @@ earlier, but can only be tested later when CL-TEST is already working.
 Sources
 -------
 
-Sources are available [at gitlab](https://gitlab.com/m-e-leypold/cl-simple-utils/-/tree/main)
-and [at github]().
+Sources are available [at GitLab](https://gitlab.com/m-e-leypold/cl-simple-utils/-/tree/main)
+and [at GitHub](https://github.com/m-e-leypold/cl-simple-utils).
 
 Releases are marked via annoted tags, [here at
-gitlab](https://gitlab.com/m-e-leypold/cl-simple-utils/-/tags) and
+GitLab](https://gitlab.com/m-e-leypold/cl-simple-utils/-/tags) and
 [here at
-github](https://github.com/m-e-leypold/cl-simple-utils/tags). 
+GitHub](https://github.com/m-e-leypold/cl-simple-utils/tags). 
 
 An annotated tag is totally sufficient as a release instrument and is
 how Git is intended to work. Pity that both sites are not willing to
