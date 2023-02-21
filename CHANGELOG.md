@@ -17,6 +17,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Makefile: Rules to push release tags.
 
+- simple-utils.lisp, tests.lisp: Facilities to overwrite
+  `CL:DOCUMENTATION` in a way as to enable information collected at
+  runtime be retrieved and display with `slime-decribe-symbol`
+  
+  - `DEFINE-DOCUMENTATION-NODE` --- Define a symbol where
+    `DOCUMENTATION` calls (after going via `GET-DOCSTRING` (also a new
+    function) the method `MAKE-DOCSTRING` (als added) on the item
+    stored in the symbol. `BASE-DOCUMENTATION-NODE` is a suitable base
+    type for such an item.
+	
+  - `DEFINE-DOCUMENTATION-ANCHOR` --- A more primitive way to define a
+    symbol as a "documentation anchor" where `DOCUMENTATION` will just
+    recur to a function passed to `DEFINE-DOCUMENTATION-ANCHOR`.
+	
 ### Fixed
 
 - CHANGELOG: Typo in version 1.0.0.

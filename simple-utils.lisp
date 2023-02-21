@@ -33,15 +33,24 @@
    Simple utilities for DE.M-E-LEYPOLD.*")
   (:use :common-lisp)
   (:export
+
    :inject-package-local-nickname
    :defpackage-doc
+   :defrestart
+
    :concatenate-lines
    :here-text
    :here-text*
-   :defrestart
+
    :symbol-full-name
    :with-full-symbol-names
    :with-gensyms
+
+   :base-documentation-node
+   :get-docstring
+   :make-docstring
+   :define-documentation-anchor
+   :define-documentation-node
    ))
 
 (in-package :de.m-e-leypold.cl-simple-utils)
@@ -157,3 +166,114 @@
 (defmacro with-gensyms ((&rest names) &body body)
   `(let ,(loop for n in names collect `(,n (gensym (concatenate 'string "G." (symbol-name (quote ,n)) "."))))
      ,@body))
+;;; * -- Documentation nodes --------------------------------------------------------------------------------|
+
+
+(defclass base-documentation-node ()
+  ((cached-docstring :accessor cached-docstring :initform nil))
+  (:documentation
+   "
+   Base class of a documentation node to be used with `DEFINE-DOCUMENTATION-NODE'.
+
+   The idea is, to derive from this class another one with a method `MAKE-DOCSTRING' that
+   creates the documentation string from the data stored in the object.
+
+   `GET-DOCSTRING' when invoked on the symbol by `DOCUMENTATION' will then either retrieve the
+   previously cached string or obtain a new one via `MAKE-DOCSTRING'.
+"))
+
+(defun get-docstring (node)
+  "
+  Get the documentation string from a node.
+
+  Called by a specialized version of `DOCUMENTATION'. The documentation string will either be
+  retrieved from NODE (slot `CACHED-DOCSTRING') or if thise returns NIL, be regenerated with
+  `MAKE-DOCSTRING' and stored in the slot.
+"
+  (let ((s (cached-docstring node)))
+    (if s
+	s
+	(let ((s2 (make-docstring node)))
+	  (setf (cached-docstring node) s2)
+	  s2))))
+
+(defgeneric make-docstring (node)
+  (:documentation
+   "
+   Create the documentation string from the data stored in a documentation node.
+
+   This method should only be invoked via `GET-DOCSTRING' which implements some caching logic
+   based on the actual content of the slot `CACHED-DOCSTRING' of a class derived from
+   `BASE-DOCUMENTATION-NODE'. NODE should probably be derived from this class.
+"))
+
+(defmacro define-documentation-anchor (symbol
+				       &key
+					 get
+					 (def 'defparameter)
+					 (value nil))
+  "
+  Define a symbol as documentation anchor.
+
+  This will define SYMBOL as a parameter (with `DEFPARAMETER') with value VALUE and define a
+  `DOCUMENTATION' method specialized to SYMBOL that will return the result of invoking (funcall
+  GET SYMBOL).
+
+  GET must be function as returned by #'.
+
+  The whole idea is to be able to define a symbol where slime-describe-symbol returns a
+  dynamically generated string, e.g. to reflect information that is defined elsewhere or only
+  accumulated later (like about defined tests in a test registry).
+
+  Example:
+
+      (define-documentation-anchor *ancho*
+         :get #'(lambda (x) (declare (ignore x)) \"A B C\"))
+
+      (documentation '*anchor* 'variable)
+
+      => \"A B C\"
+
+   Variation: When invoking wth argument DEF bound to 'DEFVAR a variable will instead be
+   defined (with all the consequences this has!)
+"
+  `(progn
+     (,def ,symbol ,value)
+     (defmethod documentation ((object (eql (quote ,symbol))) (doc-type (eql 'variable)))
+       (funcall ,get ,symbol))))
+
+(defmacro define-documentation-node (symbol type &rest arguments)
+  "
+  Define SYMBOL as documentation node of type TYPE.
+
+  This macro marries `DEFINE-DOCUMENTATION-ANCHOR' with `BASE-DOCUMENTATION-NODE'. TYPE must be
+  class type derived from `BASE-DOCUMENTATION-NODE'. The macro will instantiate an object of
+  class TYPE applying `MAKE-INSTANCE' with the parameters ARGUMENTS. SYMBOL will be defined as
+  parameter and the object bound to SYMBOL.
+
+  Later invocation of `DOCUMENTATION' on symbol will call `GET-DOCSTRING' on the object, if
+  necessary `MAKE-DOCSTRING' and return the already cached or the newly created string.
+
+  Typically TYPE is a registry of some sort that accumulates information on objects that are
+  defined later. The docstring often is formatted in a way to allow branching out to the
+  registered objects.
+
+  Hypothetical example with a test registry:
+
+      (define-documentation-node *my-test-registry* test-registry)
+
+      (deftest foo () ...)
+      (deftest bar () ...)
+
+  Invoking (documentation '*my-test-registry* 'variable), e.g. by using slime-describe-symbol,
+  might return in this case a string formatted like the following:
+
+       FOO -- Test the foo factor.  Lorem ipsum dolor sit amet, consectetuer adipiscing elit.
+              Donec hendrerit tempor tellus.
+
+       BAR -- Check for bar.  Donec pretium posuere tellus.  Proin quam nisl, tincidunt et,
+              mattis eget, convallis nec, purus.
+"
+  `(define-documentation-anchor ,symbol
+     :value (apply #'make-instance (quote ,type) ,arguments)
+     :get #'get-docstring))

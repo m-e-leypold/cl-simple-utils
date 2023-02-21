@@ -228,6 +228,43 @@
 		      "          Checks for something2.")
 		    ))))
 
+;;; * Documentation anchors ---------------------------------------------------------------------------------|
+
+(defparameter *anchor-for-test* nil)
+
+(deftest! test-define-documentation-anchor ()
+  "
+    Checks if `DEFINE-DOCUMENTATION-ANCHOR' specializes documentation on a symbol to a user supplied function.
+"
+  (if (boundp '*anchor-for-test*)
+      (makunbound '*anchor-for-test*))
+  (define-documentation-anchor *anchor-for-test*
+    :get #'(lambda (x) (declare (ignore x)) "A B C"))
+
+  (assert! (equal "A B C" (documentation '*anchor-for-test* 'variable)))
+  )
+
+(defclass documentation-node-for-test (base-documentation-node)
+  ())
+
+(defmethod make-docstring ((node documentation-node-for-test))
+  "X Y Z")
+
+(deftest! test-define-documentation-node ()
+    "
+    Checks if `DEFINE-DOCUMENTATION-NODE' specializes `DOCUMENTATION' on a given symbol to invoking
+    `GET-DOCTRING' on the instance of a class derived from `BASE-DCOUMENTATION-NODE' which is stored in the
+    symbol.
+"
+  (if (boundp '*anchor-for-test*)
+      (makunbound '*anchor-for-test*))
+
+  (define-documentation-node *anchor-for-test* documentation-node-for-test)
+
+  (typep *anchor-for-test* 'documentation-node-for-test)
+  (assert! (equal "X Y Z" (documentation '*anchor-for-test* 'variable))))
+
+
 ;;; * -------------------------------------------------------------------------------------------------------|
 ;;;   WRT the outline-* and comment-* variables, see the comment in test.lisp
 ;;;
