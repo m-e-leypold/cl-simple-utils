@@ -51,6 +51,12 @@
    :make-docstring
    :define-documentation-anchor
    :define-documentation-node
+
+   :define-load-file-hooks
+   :get-end-of-load-file-hooks
+   :add-end-of-load-file-hook
+   :end-of-load-file
+
    ))
 
 (in-package :de.m-e-leypold.cl-simple-utils)
@@ -277,3 +283,27 @@
   `(define-documentation-anchor ,symbol
      :value (apply #'make-instance (quote ,type) ,arguments)
      :get #'get-docstring))
+
+;;; * -- End of load file hooks -----------------------------------------------------------------------------|
+
+
+(defun get-end-of-load-file-hooks ()
+  (let* ((varname "*%END-OF-LOAD-FILE-HOOKS%*")
+	 (symbol (find-symbol varname *package*)))
+    (if (not symbol)
+	(progn
+	  (setf symbol (intern varname *package*))
+	  (eval `(defparameter ,symbol nil))))
+    symbol))
+
+(defun define-load-file-hooks ()
+  (set (get-end-of-load-file-hooks) '()))
+
+(defun add-end-of-load-file-hook (hook)
+  (let ((hooks-symbol (get-end-of-load-file-hooks)))
+    (set hooks-symbol (cons hook (symbol-value hooks-symbol)))))
+
+(defun end-of-load-file ()
+  (let ((hooks-symbol (get-end-of-load-file-hooks)))
+    (dolist (hook (symbol-value hooks-symbol))
+      (funcall hook))))

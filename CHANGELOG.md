@@ -30,7 +30,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `DEFINE-DOCUMENTATION-ANCHOR` --- A more primitive way to define a
     symbol as a "documentation anchor" where `DOCUMENTATION` will just
     recur to a function passed to `DEFINE-DOCUMENTATION-ANCHOR`.
+
+- simple-utils.lisp, tests.lisp: Facilities to execute hooks at end of
+  file loading (e.g. in order to finalize processing of data that has
+  been started with a declaration at the beginning of the file).
+
+  - `DEFINE-LOAD-FILE-HOOKS` -- Itempotent. Ensure that load file
+    hooks are installed during loading of this file. Used by macros
+    which use this facility. See package
+    [CL-SPECIFICATION][cl-specification] for an example.
+
+  - `ADD-END-OF-LOAD-FILE-HOOK` -- Add a hook to be processed when
+    loading of this file has finished.
+
+  - `END-OF-LOAD-FILE` -- Directive to be inserted at end of
+    file. Starts "end of load" processing, i.e. processes all hooks
+    that were added previously.
 	
+  - `GET-END-OF-LOAD-FILE-HOOKS` -- Internally used to get at the load
+    file hooks.
+
+[cl-specification]: https://gitlab.com/m-e-leypold/cl-specification
+
 ### Fixed
 
 - CHANGELOG: Typo in version 1.0.0.
