@@ -372,11 +372,12 @@
       (if (not (and symbol (boundp symbol)))
 	  (eval `(defparameter ,symbol nil))))))
 
-(defun get-load-file-hooks (&key where)
+(defun get-load-file-hooks (&key where unchecked)
   (with-package-from-indicator (package where)
     (let ((symbol (find-symbol +load-file-hooks-symbol-name+ package)))
-      (assert (and symbol (boundp symbol)) 
-	      nil "No symbol ~a in ~S" +load-file-hooks-symbol-name+ package)
+      (if (not unchecked)
+	  (assert (and symbol (boundp symbol)) 
+		  nil "No symbol ~a in ~S" +load-file-hooks-symbol-name+ package))
       symbol)))
 
 (defun load-file-hooks-exist-p (&key where)
@@ -389,10 +390,13 @@
     (set hooks-symbol (cons hook (symbol-value hooks-symbol)))))
 
 (defun end-of-load-file ()
-  (let ((hooks-symbol (get-load-file-hooks)))
-    (dolist (hook (symbol-value hooks-symbol))
-      (funcall hook))
-    (unintern hooks-symbol *package*)))
+  (let ((hooks-symbol (get-load-file-hooks :unchecked T)))
+    (if hooks-symbol
+	(progn
+	  (if (boundp hooks-symbol)
+	      (dolist (hook (symbol-value hooks-symbol))
+		(funcall hook)))   
+	  (unintern hooks-symbol *package*)))))
 
 ;;; ** -- Load trackers -------------------------------------------------------------------------------------|
 
