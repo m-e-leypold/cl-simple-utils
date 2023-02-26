@@ -172,9 +172,16 @@
   (assert! (equal (symbol-full-name 'SOME-SYMBOL)
 		  "DE.M-E-LEYPOLD.CL-SIMPLE-UTILS/TESTS::SOME-SYMBOL"))
 
-  (assert! (equal (with-full-symbol-names (format nil "- ~S -" 'SOME-SYMBOL))
+  (assert! (equal (with-full-symbol-names (format nil "- ~S -" 'SOME-SYMBOL))		 
 		  "- DE.M-E-LEYPOLD.CL-SIMPLE-UTILS/TESTS::SOME-SYMBOL -")))
 
+
+(deftest! downcasing-symbol-names ()
+    "
+    Checks `DOWNCASE-SYMBOL-NAME' and indirectly `WITH-DOWNCASE-SYMBOLS'
+"
+  (assert! (equal (downcase-symbol-name 'foobar)
+		  "foobar")))
 
 ;;; * Basic Test --------------------------------------------------------------------------------------------|
 ;;; ** Test registry ----------------------------------------------------------------------------------------|
@@ -234,7 +241,8 @@
 
 (deftest! test-define-documentation-anchor ()
   "
-    Checks if `DEFINE-DOCUMENTATION-ANCHOR' specializes documentation on a symbol to a user supplied function.
+    Checks if `DEFINE-DOCUMENTATION-ANCHOR' specializes documentation on a variable
+    symbol to a user supplied function.
 "
   (if (boundp '*anchor-for-test*)
       (makunbound '*anchor-for-test*))
@@ -264,6 +272,30 @@
   (typep *anchor-for-test* 'documentation-node-for-test)
   (assert! (equal "X Y Z" (documentation '*anchor-for-test* 'variable))))
 
+(deftest! test-make-symbol-into-documentation-anchor ()
+    "
+    Checks if `MAKE-SYMBOL-INTO-DOCUMENTATION-ANCHOR' specializes documentation on a symbol to a user supplied
+    function.    
+"
+  (let ((test-symbol (gensym "G:TEST-SYMBOL:")))
+    (make-symbol-into-documentation-anchor
+     test-symbol
+     :get #'(lambda (x) (declare (ignore x)) "A B C")
+     :doc-type 'function)
+
+    (assert! (equal (documentation test-symbol 'function)
+		    "A B C"))))
+
+
+(deftest! test-add-documentation-node-to-function ()
+    "
+    Checks defining a function as documentation anchor with `ADD-DOCUMENTATION-NODE-TO-FUNCTION'
+"
+  (let ((test-symbol (gensym "G:TEST-SYMBOL:")))
+    (add-documentation-node-to-function test-symbol 'documentation-node-for-test)
+    (assert (typep (get-documentation-node test-symbol) 'documentation-node-for-test))
+    (assert! (equal (documentation test-symbol 'function)
+		    "X Y Z"))))
 
 ;;; * -------------------------------------------------------------------------------------------------------|
 ;;;   WRT the outline-* and comment-* variables, see the comment in test.lisp

@@ -34,6 +34,8 @@
   (:use :common-lisp)
   (:export
 
+   :define-constant
+   
    :inject-package-local-nickname
    :defpackage-doc
    :defrestart
@@ -44,6 +46,8 @@
 
    :symbol-full-name
    :with-full-symbol-names
+   :with-downcase-symbols
+   :downcase-symbol-name
    :with-gensyms
 
    :base-documentation-node
@@ -51,12 +55,27 @@
    :make-docstring
    :define-documentation-anchor
    :define-documentation-node
+   :make-symbol-into-documentation-anchor
+   :add-documentation-node-to-function
+   :get-documentation-node
 
-   :define-load-file-hooks
-   :get-end-of-load-file-hooks
-   :add-end-of-load-file-hook
+   :package-from-indicator
+   :with-package-from-indicator
+
+   :ensure-load-file-hooks
+   :load-file-hooks-exist-p
+   :add-load-file-hook
    :end-of-load-file
+   
+   :create-load-tracker
+   :remove-load-tracker
+   :get-load-tracker
+   :with-load-tracker
+   :with-load-tracker-value
+   :get-load-tracker-value
 
+   :guess-load-scope
+   :file-load-scope-p
    ))
 
 (in-package :de.m-e-leypold.cl-simple-utils)
@@ -86,6 +105,12 @@
 
   #-(or sbcl)
   (assert nil nil "No implementation for INJECT-PACKAGE-LOCAL-NICKNAME available." ))
+
+;;; * -- DEFINE-CONSTANT ------------------------------------------------------------------------------------|
+
+(defmacro define-constant (name value &optional doc)
+  `(defconstant ,name (if (boundp ',name) (symbol-value ',name) ,value)
+     ,@(when doc (list doc))))
 
 ;;; * -- Package docstrings as symbols ----------------------------------------------------------------------|
 
@@ -165,7 +190,15 @@
   (with-full-symbol-names
       (format nil "~S" symbol)))
 
+;;; ** -- Lower case symbols ---------------------------------------------------------------------------------|
 
+(defmacro with-downcase-symbols (&body body)
+  `(let ((*print-case* :downcase))
+     ,@body))
+
+(defun downcase-symbol-name (symbol)
+  (let ((*package* (symbol-package symbol)))
+    (with-downcase-symbols (format nil "~S" symbol))))
 
 ;;; ** -- with-gensyms --------------------------------------------------------------------------------------|
 
@@ -188,6 +221,17 @@
    previously cached string or obtain a new one via `MAKE-DOCSTRING'.
 "))
 
+
+(defgeneric make-docstring (node)
+  (:documentation
+   "
+   Create the documentation string from the data stored in a documentation node.
+
+   This method should only be invoked via `GET-DOCSTRING' which implements some caching logic
+   based on the actual content of the slot `CACHED-DOCSTRING' of a class derived from
+   `BASE-DOCUMENTATION-NODE'. NODE should probably be derived from this class.
+"))
+
 (defun get-docstring (node)
   "
   Get the documentation string from a node.
@@ -203,15 +247,6 @@
 	  (setf (cached-docstring node) s2)
 	  s2))))
 
-(defgeneric make-docstring (node)
-  (:documentation
-   "
-   Create the documentation string from the data stored in a documentation node.
-
-   This method should only be invoked via `GET-DOCSTRING' which implements some caching logic
-   based on the actual content of the slot `CACHED-DOCSTRING' of a class derived from
-   `BASE-DOCUMENTATION-NODE'. NODE should probably be derived from this class.
-"))
 
 (defmacro define-documentation-anchor (symbol
 				       &key
@@ -281,29 +316,141 @@
               mattis eget, convallis nec, purus.
 "
   `(define-documentation-anchor ,symbol
-     :value (apply #'make-instance (quote ,type) ,arguments)
+     :value (apply #'make-instance (quote ,type) (quote ,arguments))
      :get #'get-docstring))
 
-;;; * -- End of load file hooks -----------------------------------------------------------------------------|
+
+(defun make-symbol-into-documentation-anchor (symbol &key get doc-type)
+  "
+  Make an existing symbol into a documentation node.
+"
+  (eval `(defmethod documentation ((object (eql (quote ,symbol))) (doc-type (eql (quote ,doc-type))))
+	   (funcall ,get (quote ,symbol)))))
 
 
-(defun get-end-of-load-file-hooks ()
-  (let* ((varname "*%END-OF-LOAD-FILE-HOOKS%*")
-	 (symbol (find-symbol varname *package*)))
-    (if (not symbol)
-	(progn
-	  (setf symbol (intern varname *package*))
-	  (eval `(defparameter ,symbol nil))))
-    symbol))
+(defun get-documentation-node (symbol)
+  (get symbol 'documentation-node))
 
-(defun define-load-file-hooks ()
-  (set (get-end-of-load-file-hooks) '()))
+(defun add-documentation-node-to-function (symbol type &rest arguments)
+  "
+  Define function SYMBOL as documentation node of type TYPE.
+"
+  (setf (get symbol 'documentation-node) (apply #'make-instance type arguments))
+  (make-symbol-into-documentation-anchor symbol
+					 :get #'(lambda (x) (get-docstring (get-documentation-node x)))
+					 :doc-type 'function))
+  
 
-(defun add-end-of-load-file-hook (hook)
-  (let ((hooks-symbol (get-end-of-load-file-hooks)))
+;;; * -- Packages -------------------------------------------------------------------------------------------|
+
+;;; ** -- Package indicator ---------------------------------------------------------------------------------|
+
+
+(defun package-from-indicator (indicator)
+  (if (not indicator)
+      *package*
+      (if (symbolp indicator)	  
+	  (symbol-package indicator)
+	  (progn
+	    (assert (packagep indicator))
+	    indicator))))
+
+(defmacro with-package-from-indicator ((var indicator) &body body)
+  `(let ((,var (package-from-indicator ,indicator)))
+     ,@body))
+  
+
+;;; * -- Load file instrumentation --------------------------------------------------------------------------|
+
+;;; ** -- End of load file hooks ----------------------------------------------------------------------------|
+
+(define-constant +load-file-hooks-symbol-name+ "*%LOAD-FILE-HOOKS%*")
+
+(defun ensure-load-file-hooks (&key where)
+  (with-package-from-indicator (package where)
+    (let ((symbol (intern +load-file-hooks-symbol-name+ package)))
+      (if (not (and symbol (boundp symbol)))
+	  (eval `(defparameter ,symbol nil))))))
+
+(defun get-load-file-hooks (&key where)
+  (with-package-from-indicator (package where)
+    (let ((symbol (find-symbol +load-file-hooks-symbol-name+ package)))
+      (assert (and symbol (boundp symbol)) 
+	      nil "No symbol ~a in ~S" +load-file-hooks-symbol-name+ package)
+      symbol)))
+
+(defun load-file-hooks-exist-p (&key where)
+  (with-package-from-indicator (package where)
+    (let ((symbol (find-symbol +load-file-hooks-symbol-name+ package)))
+      (and symbol (boundp symbol)))))
+
+(defun add-load-file-hook (hook &key where)
+  (let ((hooks-symbol (get-load-file-hooks :where where)))
     (set hooks-symbol (cons hook (symbol-value hooks-symbol)))))
 
 (defun end-of-load-file ()
-  (let ((hooks-symbol (get-end-of-load-file-hooks)))
+  (let ((hooks-symbol (get-load-file-hooks)))
     (dolist (hook (symbol-value hooks-symbol))
-      (funcall hook))))
+      (funcall hook))
+    (unintern hooks-symbol *package*)))
+
+;;; ** -- Load trackers -------------------------------------------------------------------------------------|
+
+;; TODO package-from-indication, with-package-from-indication
+
+(defun remove-load-tracker (name &key where)
+  (if (not where)
+      (setf where *package*)
+      (if (symbolp where)
+	  (setf where (symbol-package where))))
+  (let ((symbol (find-symbol name where)))
+    (if symbol
+	(unintern symbol where))))
+
+(defun create-load-tracker (name &key where init)
+  (if (not where)
+      (setf where *package*)
+      (if (symbolp where)
+	  (setf where (symbol-package where))))
+  (let ((symbol (intern name where)))
+    (if (not (boundp symbol))
+	(eval `(defparameter ,symbol (quote ,init)))
+	(set symbol init))
+    (add-load-file-hook #'(lambda () (remove-load-tracker name :where where)))
+    symbol))
+
+(defun get-load-tracker (name &key where)
+    (if (not where)
+      (setf where *package*)
+      (if (symbolp where)
+	  (setf where (symbol-package where))))
+  (let ((symbol (find-symbol name where)))
+    (assert symbol nil "file tracker not found: ~A" name)
+    symbol))
+
+(defmacro with-load-tracker ((symbol name &key where) &body body)
+  `(let ((,symbol (get-load-tracker ,name :where ,where)))
+     ,@body))
+
+(defmacro with-load-tracker-value ((symbol name &key where) &body body)
+  (with-gensyms (tracker-symbol)
+    `(with-load-tracker (,tracker-symbol ,name :where ,where)
+       (let ((,symbol (symbol-value ,tracker-symbol)))
+	 ,@body))))
+
+(defun get-load-tracker-value (name &key where)
+  (with-load-tracker-value (value name :where where)
+    value))
+;;; ** -- Load mode -----------------------------------------------------------------------------------------|
+
+(defun guess-load-scope ()
+  (if (load-file-hooks-exist-p)
+      :file
+      (if (or *compile-file-pathname* *load-pathname*)
+	  (progn
+	    (warn "load scope unclear")
+	    :unknown)
+	  :form)))
+
+(defun file-load-scope-p ()
+  (eq :file (guess-load-scope)))

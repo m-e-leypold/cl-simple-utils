@@ -17,6 +17,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Makefile: Rules to push release tags.
 
+- `DEFINE-CONSTANT` --- The macro from the SBCL manual to avoid
+  problems when defining constants whose values when assigned
+  repeatedly (compile and load time) are not EQ). See the SBCL manual
+  an DEFCONST for details.
+  
+- `WITH-DOWNCASE-SYMBOLS`, `DOWNCASE-SYMBOL-NAME` --- Macros to obtain
+  symbol names in lower case. Useful in case where we want to display
+  a message to the use and display a symbol name that acts as a tag of
+  some kind, but we do not want to display in upper case).
+
 - simple-utils.lisp, tests.lisp: Facilities to overwrite
   `CL:DOCUMENTATION` in a way as to enable information collected at
   runtime be retrieved and display with `slime-decribe-symbol`
@@ -30,25 +40,56 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `DEFINE-DOCUMENTATION-ANCHOR` --- A more primitive way to define a
     symbol as a "documentation anchor" where `DOCUMENTATION` will just
     recur to a function passed to `DEFINE-DOCUMENTATION-ANCHOR`.
+	
+  - `MAKE-SYMBOL-INTO-DOCUMENTATION-ANCHOR`,
+    `ADD-DOCUMENTATION-NODE-TO-FUNCTION`, `GET-DOCUMENTATION-NODE` ---
+    Defining existing symbols a documentation anchors. This is geared
+    towards functions with dynamically generated documentation strings.
+	
+	
+- `PACKAGE-FROM-INDICATOR`, `WITH-PACKAGE-FROM-INDICATOR` --- Obtain
+  package from an indicator that might be NIL, a symbol ore a package
+  itself. Useful When having a symbol at hand, but need to operate on
+  the package or *PACKAGE* as default.
 
 - simple-utils.lisp, tests.lisp: Facilities to execute hooks at end of
   file loading (e.g. in order to finalize processing of data that has
   been started with a declaration at the beginning of the file).
 
-  - `DEFINE-LOAD-FILE-HOOKS` -- Itempotent. Ensure that load file
+  - `ENSURE-LOAD-FILE-HOOKS` -- Itempotent. Ensure that load file
     hooks are installed during loading of this file. Used by macros
     which use this facility. See package
     [CL-SPECIFICATION][cl-specification] for an example.
 
-  - `ADD-END-OF-LOAD-FILE-HOOK` -- Add a hook to be processed when
-    loading of this file has finished.
+  - `ADD-LOAD-FILE-HOOK` -- Add a hook to be processed when loading of
+    this file has finished.
 
   - `END-OF-LOAD-FILE` -- Directive to be inserted at end of
     file. Starts "end of load" processing, i.e. processes all hooks
     that were added previously.
 	
-  - `GET-END-OF-LOAD-FILE-HOOKS` -- Internally used to get at the load
+  - `GET-LOAD-FILE-HOOKS` -- Internally used to get at the load
     file hooks.
+	
+  - `LOAD-FILE-HOOKS-EXIST-P` --- Check if load file hooks have been
+    installed. Useful as an indicator if the whole file is loaded or
+    only single forms evaluated.
+	
+  - `GUESS-LOAD-SCOPE`, `FILE-LOAD-SCOPE-P` --- Check if a load of the
+    whole file is in progress, or if only single forms are evaluated.
+	
+- simple-utils.lisp, tests.lisp: Facilities to maintain symbol during
+  file load time in which information can collected during load
+  time. This is useful for implementing DSLs that are not living in a
+  single lisp form.
+
+  - `CREATE-LOAD-TRACKER`, `REMOVE-LOAD-TRACKER` --- Creating and
+    removing a load tracker. Actually trackers remove themselves when
+    `END-OF-LOAD-FILE` is processed.
+  
+  - `GET-LOAD-TRACKER`, `WITH-LOAD-TRACKER`,
+    `WITH-LOAD-TRACKER-VALUE`, `GET-LOAD-TRACKER-VALUE` --- Retrieving
+    a tracker symbol or it's value and doing things with it.
 
 [cl-specification]: https://gitlab.com/m-e-leypold/cl-specification
 
