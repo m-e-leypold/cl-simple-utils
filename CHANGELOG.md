@@ -19,8 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `DEFINE-CONSTANT` --- The macro from the SBCL manual to avoid
   problems when defining constants whose values when assigned
-  repeatedly (compile and load time) are not EQ). See the SBCL manual
-  an DEFCONST for details.
+  repeatedly (compile and load time) are not EQ. See the SBCL manual
+  and DEFCONST for details.
   
 - `WITH-DOWNCASE-SYMBOLS`, `DOWNCASE-SYMBOL-NAME` --- Macros to obtain
   symbol names in lower case. Useful in case where we want to display
@@ -49,7 +49,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 	
 - `PACKAGE-FROM-INDICATOR`, `WITH-PACKAGE-FROM-INDICATOR` --- Obtain
   package from an indicator that might be NIL, a symbol ore a package
-  itself. Useful When having a symbol at hand, but need to operate on
+  itself. Useful when having a symbol at hand, but need to operate on
   the package or *PACKAGE* as default.
 
 - simple-utils.lisp, tests.lisp: Facilities to execute hooks at end of
