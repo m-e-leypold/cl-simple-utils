@@ -48,9 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 	
 	
 - `PACKAGE-FROM-INDICATOR`, `WITH-PACKAGE-FROM-INDICATOR` --- Obtain
-  package from an indicator that might be NIL, a symbol ore a package
+  package from an indicator that might be NIL, a symbol or a package
   itself. Useful when having a symbol at hand, but need to operate on
-  the package or *PACKAGE* as default.
+  the package or `*PACKAGE*` as default.
 
 - simple-utils.lisp, tests.lisp: Facilities to execute hooks at end of
   file loading (e.g. in order to finalize processing of data that has
